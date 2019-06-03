@@ -1,0 +1,68 @@
+{
+	"description": "项目配置文件。",
+	"setting": {
+		"urlCheck": true,
+		"es6": true,
+		"postcss": true,
+		"minified": true,
+		"newFeature": true,
+		"autoAudits": false,
+		"checkInvalidKey": true,
+		"checkSiteMap": true,
+		"uploadWithSourceMap": true,
+		"babelSetting": {
+			"ignore": [],
+			"disablePlugins": [],
+			"outputPath": ""
+		}
+	},
+	"miniprogramRoot": "dist/wx/",
+	"compileType": "miniprogram",
+	"appid": "wx7a7cf81b8736f72a",
+	"projectname": "mpVue",
+	"simulatorType": "wechat",
+	"simulatorPluginLibVersion": {},
+	"condition": {
+		"search": {
+			"current": -1,
+			"list": []
+		},
+		"conversation": {
+			"current": -1,
+			"list": []
+		},
+		"plugin": {
+			"current": -1,
+			"list": []
+		},
+		"game": {
+			"currentL": -1,
+			"list": []
+		},
+		"miniprogram": {
+			"current": 2,
+			"list": [
+				{
+					"id": 0,
+					"name": "扫码二维码进入点餐页",
+					"pathName": "pages/index/main",
+					"query": "d=4&s=1",
+					"scene": "1011"
+				},
+				{
+					"id": 2,
+					"name": "扫码二维码进入排队页",
+					"pathName": "pages/index/main",
+					"query": "s=2&t=queue",
+					"scene": "1011"
+				},
+				{
+					"id": -1,
+					"name": "个人中心-分享",
+					"pathName": "pages/my/main",
+					"scene": 1007
+				}
+			]
+		}
+	}
+}
