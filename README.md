@@ -4,8 +4,6 @@
 
 # 项目搭建运行
 
-# 初始化项目
-
 ## 下载
 
 `git clone https://github.com/eiiizong/ordering.git`

@@ -23,11 +23,9 @@ export default {
     // this.getSetting();
     console.log("mpvue => ", mpvue);
   },
-  onLaunch () {
-    if (mpvuePlatform === "wx") {
-      const sceneValue = mpvue.getLaunchOptionsSync();
-      console.log("场景值 => ", sceneValue.scene);
-    }
+  onLaunch (options) {
+    console.log("******************************************************************************************************************onLaunch**********************");
+    console.log("扫码二维码进入小程序 携带参数=>", options);
   },
   onShow () {
     // 检测用户授权信息

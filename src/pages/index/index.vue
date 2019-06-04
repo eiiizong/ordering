@@ -352,6 +352,10 @@ export default {
   // 页面加载进来的参数
   onLoad (options) {
     console.log("******************************************************************************************************************onLoad**********************");
+    if (mpvuePlatform === "my") {
+      options = this.$root.$mp.appOptions.query;
+    }
+
     console.log("扫码二维码进入小程序 携带参数=>", options);
     // 如果 options 不为 {}
     if (options) {
@@ -449,7 +453,7 @@ export default {
             console.log("接收到点餐页推送过来的数据 => ", data);
             this.updateBarBadge(data);
           };
-          if (globalData.SocketTask) {
+          if (globalData.socketIsOpen) {
             globalData.SocketTaskSendGetAllFoods(globalData.SocketTask, this);
           }
         } else {
@@ -1060,7 +1064,7 @@ export default {
       if (!adItem.url) {
         return false;
       } else {
-        const url = `../webView/main?name=${adItem.name}&url=${adItem.url}`;
+        const url = `../webView/main?title=${adItem.name}&url=${adItem.url}`;
         mpvue.navigateTo({ url });
       }
     },
@@ -1070,7 +1074,7 @@ export default {
       if (!data.uri) {
         return false;
       } else {
-        const url = `../webView/main?name=${data.title}&url=${data.uri}`;
+        const url = `../webView/main?title=${data.title}&url=${data.uri}`;
         mpvue.navigateTo({ url });
       }
     },

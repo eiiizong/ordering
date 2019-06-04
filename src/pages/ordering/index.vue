@@ -348,35 +348,73 @@ export default {
       return SocketTask;
     },
     SocketTaskOnOpen (SocketTask, context) {
-      SocketTask.onOpen((res) => {
-        console.log("监听 Socket 连接打开事件 => socket 已打开", res);
+      if (mpvuePlatform === "wx") {
+        SocketTask.onOpen((res) => {
+          console.log("监听 Socket 连接打开事件 => socket 已打开", res);
 
-        context.globalData.socketIsOpen = true;
-        let firstSendData = { "route": "b", "d": { "token": context.globalData.userInfo.access_token, "desk_id": context.globalData.deskId } };
-        firstSendData = encodeURIComponent(JSON.stringify(firstSendData));
-        context.globalData.socketMsgQueue.push(firstSendData);
-        let len = context.globalData.socketMsgQueue.length;
-        for (let i = 0; i < len; i++) {
-          SocketTask.send({
-            data: context.globalData.socketMsgQueue[i]
-          });
-        }
-        context.globalData.socketMsgQueue = [];
-      });
+          context.globalData.socketIsOpen = true;
+          let firstSendData = { "route": "b", "d": { "token": context.globalData.userInfo.access_token, "desk_id": context.globalData.deskId } };
+          firstSendData = encodeURIComponent(JSON.stringify(firstSendData));
+          context.globalData.socketMsgQueue.push(firstSendData);
+          let len = context.globalData.socketMsgQueue.length;
+          for (let i = 0; i < len; i++) {
+            SocketTask.send({
+              data: context.globalData.socketMsgQueue[i]
+            });
+          }
+          context.globalData.socketMsgQueue = [];
+        });
+      }
+
+      if (mpvuePlatform === "my") {
+        mpvue.onSocketOpen((res) => {
+          console.log("监听 Socket 连接打开事件 => socket 已打开", res);
+
+          context.globalData.socketIsOpen = true;
+          let firstSendData = { "route": "b", "d": { "token": context.globalData.userInfo.access_token, "desk_id": context.globalData.deskId } };
+          firstSendData = encodeURIComponent(JSON.stringify(firstSendData));
+          context.globalData.socketMsgQueue.push(firstSendData);
+          let len = context.globalData.socketMsgQueue.length;
+          for (let i = 0; i < len; i++) {
+            mpvue.sendSocketMessage({
+              data: context.globalData.socketMsgQueue[i]
+            });
+          }
+          context.globalData.socketMsgQueue = [];
+        });
+      }
     },
     // 监听 Socket 连接关闭事件
     SocketTaskOnClose (SocketTask, context) {
-      SocketTask.onClose((res) => {
-        console.log("监听 Socket 连接  => 此时已关闭", res);
-        context.globalData.socketIsOpen = false;
-        if (context.globalData.order_type === "scan") {
-          if (context.globalData.socketConnectTime < 5) {
-            console.log("正在尝试重新连接 socket....");
-            context.Socket();
-            context.globalData.socketConnectTime++;
+      if (mpvuePlatform === "wx") {
+        SocketTask.onClose((res) => {
+          console.log("监听 Socket 连接  => 此时已关闭", res);
+          context.globalData.socketIsOpen = false;
+          if (context.globalData.order_type === "scan") {
+            if (context.globalData.socketConnectTime < 5) {
+              console.log("正在尝试重新连接 socket....");
+              context.Socket();
+              context.globalData.socketConnectTime++;
+            }
           }
-        }
-      });
+        });
+      }
+      if (mpvuePlatform === "my") {
+        mpvue.onSocketClose(message => {
+          let data = JSON.parse(message.data);
+          console.log("Socket 接受到服务器的消息 => ", message);
+          console.log("Socket 接受到服务器的消息 data => ", data);
+
+          context.globalData.socketIsOpen = false;
+          if (context.globalData.order_type === "scan") {
+            if (context.globalData.socketConnectTime < 5) {
+              console.log("正在尝试重新连接 socket....");
+              context.Socket();
+              context.globalData.socketConnectTime++;
+            }
+          }
+        });
+      }
     },
     // 扫码进入点餐 计算 CategoryList
     scanCaclCategoryList (data) {
@@ -394,6 +432,7 @@ export default {
       console.log(data);
     },
     initCategoryListScan (data) {
+      console.log("扫码进来   正在计算cat...");
       data.forEach(item1 => {
         item1.goods_num = 0;
         item1.goodsList.forEach(item2 => {
@@ -411,7 +450,8 @@ export default {
       data.forEach(item1 => {
         item1.goodsList.forEach(item2 => {
           item2.specs.forEach(item3 => {
-            if (item3.id.toString() === foodId) {
+            let id = item3.id.toString();
+            if (id === foodId) {
               item3.goods_num = goodsNum;
             }
           });
@@ -423,9 +463,11 @@ export default {
     caclSocketdata (data) {
       switch (data.route) {
         case "a":
-          this.initCategoryListScan(this.goodsList.categoryList);
-          this.scanCaclCategoryList(data.d);
-          this.saveData();
+          if (this.goodsList.categoryList) {
+            this.initCategoryListScan(this.goodsList.categoryList);
+            this.scanCaclCategoryList(data.d);
+            this.saveData();
+          }
           break;
         case "m":
           let mdata = data.d;
@@ -449,27 +491,56 @@ export default {
     },
     // 监听 WebSocket 接受到服务器的消息事件
     SocketTaskOnMessage (SocketTask, context) {
-      SocketTask.onMessage((message) => {
-        let data = JSON.parse(message.data);
-        console.log("Socket 接受到服务器的消息 => ", message);
-        console.log("Socket 接受到服务器的消息 data => ", data);
+      if (mpvuePlatform === "wx") {
+        SocketTask.onMessage((message) => {
+          let data = JSON.parse(message.data);
+          console.log("Socket 接受到服务器的消息 => ", message);
+          console.log("Socket 接受到服务器的消息 data => ", data);
 
-        if (data.d.sid) {
-          // 第一次连接绑定 socket
-          context.globalData.socketSessionId = data.d.sid;
-          context.SocketTaskSendGetAllFoods(SocketTask, context);
-        } else {
-          if (context.globalData.userInfo.id !== data.d.user_id) {
-            context.caclSocketdata(data);
+          if (data.d.sid) {
+            // 第一次连接绑定 socket
+            context.globalData.socketSessionId = data.d.sid;
+            if (context.goodsList.categoryList) {
+              context.SocketTaskSendGetAllFoods(SocketTask, context);
+            }
+          } else {
+            if (context.globalData.userInfo.id !== data.d.user_id) {
+              context.caclSocketdata(data);
+            }
           }
-        }
-      });
+        });
+      }
+      if (mpvuePlatform === "my") {
+        mpvue.onSocketMessage(message => {
+          let data = JSON.parse(message.data);
+          console.log("Socket 接受到服务器的消息 => ", message);
+          console.log("Socket 接受到服务器的消息 data => ", data);
+
+          if (data.d.sid) {
+            // 第一次连接绑定 socket
+            context.globalData.socketSessionId = data.d.sid;
+            context.SocketTaskSendGetAllFoods(SocketTask, context);
+          } else {
+            if (context.globalData.userInfo.id !== data.d.user_id) {
+              context.caclSocketdata(data);
+            }
+          }
+        });
+      }
     },
     // 监听 WebSocket 错误事件
     SocketTaskOnError (SocketTask) {
-      SocketTask.onError(errMsg => {
-        console.log("监听 WebSocket 错误事件 =>", errMsg);
-      });
+      if (mpvuePlatform === "wx") {
+        SocketTask.onError(errMsg => {
+          console.log("监听 WebSocket 错误事件 =>", errMsg);
+        });
+      }
+
+      if (mpvuePlatform === "my") {
+        mpvue.onSocketError(errMsg => {
+          console.log("监听 WebSocket 错误事件 =>", errMsg);
+        });
+      }
     },
     // 关闭 WebSocket 连接
     SocketTaskClose (SocketTask, context, cb) {
@@ -479,44 +550,88 @@ export default {
           context.globalData.socketIsOpen = false;
         };
       }
-      SocketTask.close({
-        success: cb
-      });
+      if (mpvuePlatform === "wx") {
+        SocketTask.close({
+          success: cb
+        });
+      }
+      if (mpvuePlatform === "my") {
+        mpvue.closeSocket({
+          success: cb
+        });
+      }
     },
     SocketTaskSend (SocketTask, foodId, categoryId, goodsNum, event, context = this) {
       // 通过 WebSocket 连接发送数据 b绑定
       let sendData = { "route": "m", "d": { "sid": context.globalData.socketSessionId, "md": { "goods_specs_id": foodId, "goods_num": goodsNum, "event": event, "category_id": categoryId } } };
       let data = encodeURIComponent(JSON.stringify(sendData));
-      if (context.globalData.socketIsOpen) {
-        SocketTask.send({
-          data
-        });
-      } else {
-        context.globalData.socketMsgQueue.push(data);
+      console.log("senddata", sendData);
+      if (mpvuePlatform === "wx") {
+        if (context.globalData.socketIsOpen) {
+          SocketTask.send({
+            data
+          });
+        } else {
+          context.globalData.socketMsgQueue.push(data);
+        }
+      }
+      if (mpvuePlatform === "my") {
+        if (context.globalData.socketIsOpen) {
+          mpvue.sendSocketMessage({
+            data
+          });
+        } else {
+          context.globalData.socketMsgQueue.push(data);
+        }
       }
     },
     // socket 获取全部数据
     SocketTaskSendGetAllFoods (SocketTask, context = this) {
       let sendData = { "route": "a", "d": { "sid": context.globalData.socketSessionId } };
       let data = encodeURIComponent(JSON.stringify(sendData));
-      if (context.globalData.socketIsOpen) {
-        console.log("********************正在发送数据于 Socket 拉取点餐全部菜品*********************");
-        SocketTask.send({
-          data
-        });
-      } else {
-        context.globalData.socketMsgQueue.push(data);
+      if (mpvuePlatform === "wx") {
+        if (context.globalData.socketIsOpen) {
+          console.log("********************正在发送数据于 Socket 拉取点餐全部菜品*********************");
+          SocketTask.send({
+            data
+          });
+        } else {
+          context.globalData.socketMsgQueue.push(data);
+        }
+      }
+      if (mpvuePlatform === "my") {
+        if (context.globalData.socketIsOpen) {
+          console.log("********************正在发送数据于 Socket 拉取点餐全部菜品*********************");
+          mpvue.sendSocketMessage({
+            data
+          });
+        } else {
+          context.globalData.socketMsgQueue.push(data);
+        }
       }
     },
     SocketTaskSendClearAllFoods (SocketTask, context = this) {
       let sendData = { "route": "c", "d": { "sid": context.globalData.socketSessionId } };
       let data = encodeURIComponent(JSON.stringify(sendData));
-      if (context.globalData.socketIsOpen) {
-        SocketTask.send({
-          data
-        });
-      } else {
-        context.globalData.socketMsgQueue.push(data);
+
+      if (mpvuePlatform === "wx") {
+        if (context.globalData.socketIsOpen) {
+          SocketTask.send({
+            data
+          });
+        } else {
+          context.globalData.socketMsgQueue.push(data);
+        }
+      }
+
+      if (mpvuePlatform === "my") {
+        if (context.globalData.socketIsOpen) {
+          mpvue.sendSocketMessage({
+            data
+          });
+        } else {
+          context.globalData.socketMsgQueue.push(data);
+        }
       }
     },
     // 初始化 CategoryList
@@ -706,7 +821,9 @@ export default {
 
         this.activityList = resultData.activityList;
         this.globalData.activity_list = resultData.activityList;
-
+        if (this.globalData.socketSessionId) {
+          this.globalData.SocketTaskSendGetAllFoods(this.globalData.SocketTask, this);
+        }
         this.initCategoryList(resultData.categoryList);
       }).catch(err => {
         console.log(`发起获取 ${url} 数据请求 失败 => 返回的结果：`, err);
@@ -865,6 +982,7 @@ export default {
       //  商品目前总量
       const newNum = foodItem.goods_num;
       let oldNum = 0;
+      let handleNum = 0;
 
       data.some((item1, index1) => {
         let id = item1.id.toString();
@@ -882,18 +1000,22 @@ export default {
           });
         }
       });
-
-      // 重置序号
-      this.currentSelectedFoodSizeIndex = 0;
-      // 相同ID 相同操作
-      this._sameFoodId(foodId, newNum - oldNum, "add");
-      // 计算左边
-      this._caclCategoryList(categoryId);
+      console.log("newNum", newNum);
+      console.log("oldNum", oldNum);
       // 隐藏弹框
       this.handleSizePopupShow();
 
-      if (this.orderType === "scan") {
-        this.globalData.SocketTaskSend(this.globalData.SocketTask, foodId, categoryId, newNum - oldNum, "add", this);
+      handleNum = newNum - oldNum;
+      if (handleNum > 0) {
+        // 重置序号
+        this.currentSelectedFoodSizeIndex = 0;
+        // 相同ID 相同操作
+        this._sameFoodId(foodId, newNum - oldNum, "add");
+        // 计算左边
+        this._caclCategoryList(categoryId);
+        if (this.orderType === "scan") {
+          this.globalData.SocketTaskSend(this.globalData.SocketTask, foodId, categoryId, newNum - oldNum, "add", this);
+        }
       }
     },
     // 点击去下单按钮

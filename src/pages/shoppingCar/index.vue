@@ -114,45 +114,31 @@ export default {
     },
     // 初始化显示列表
     initShowArr (data) {
-      let orderType = this.orderType;
+      // let orderType = this.orderType;
       let arr = [];
-      if (orderType === "scan") {
-        // 如果已经存在
-        if (this.showArr.length > 0) {
-          data.forEach(item1 => {
-            let categoryId = item1.id;
-            // 记录categoryid在this.showArr存在时的位置
-            let index = 0;
-            let obj = {
-              category_id: categoryId,
-              isShow: false
-            };
-            // 检测该categoryid是否存在
-            let isExist = this.showArr.some((item2, index2) => {
-              if (item2.category_id === categoryId) {
-                index = index2;
-                return true;
-              }
-            });
-            // 如果存在
-            if (isExist) {
-              obj.isShow = this.showArr[index].isShow;
+      // 如果已经存在
+      if (this.showArr.length > 0) {
+        data.forEach(item1 => {
+          let categoryId = item1.id;
+          // 记录categoryid在this.showArr存在时的位置
+          let index = 0;
+          let obj = {
+            category_id: categoryId,
+            isShow: false
+          };
+          // 检测该categoryid是否存在
+          let isExist = this.showArr.some((item2, index2) => {
+            if (item2.category_id === categoryId) {
+              index = index2;
+              return true;
             }
-            arr.push(obj);
           });
-        } else {
-          data.forEach(item => {
-            let obj = {
-              category_id: item.id,
-              isShow: false
-            };
-            arr.push(obj);
-          });
-          // 防止 foods = [] 时报错
-          if (arr.length > 0) {
-            arr[0].isShow = true;
+          // 如果存在
+          if (isExist) {
+            obj.isShow = this.showArr[index].isShow;
           }
-        }
+          arr.push(obj);
+        });
       } else {
         data.forEach(item => {
           let obj = {

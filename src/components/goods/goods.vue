@@ -28,6 +28,9 @@
                    :scroll-into-view="contentActive"
                    scroll-with-animation
                    @scroll="handleFoodsWrapperScroll"
+                   scroll-animation-duration="500"
+                   trap-scroll
+                   enable-back-to-top
                    scroll-y>
         <ul class="foods-items">
           <li class="foods-item"
@@ -124,6 +127,7 @@ export default {
     },
     // 点击菜单类执行该事件
     clickGoodsItem (e) {
+      console.log(e);
       clearTimeout(this.timer);
       this.contentActive = e.currentTarget.id;
       this.currentIndex = e.currentTarget.dataset.index;
@@ -156,7 +160,7 @@ export default {
     },
     // 监听菜品滚动 控制菜单滚动
     handleFoodsWrapperScroll (e) {
-      console.log(e);
+      // console.log(e);
       if (!this.isClick) {
         const _this = this;
         clearTimeout(this.timer);
@@ -202,22 +206,6 @@ export default {
     }
   },
   computed: {
-    // caclAliPayData () {
-    //   const data = this.goods;
-    //   let tabs = [];
-    //   console.log("正在计算data....", data);
-    //   data.forEach(item => {
-    //     const obj = {
-    //       title: item.name,
-    //       anchor: this.scrollIDPrefix + item.id,
-    //       badgeType: "dot",
-    //       badgeText: item.goods_num
-    //     };
-    //     tabs.push(obj);
-    //   });
-    //   console.log("tabs", tabs);
-    //   return tabs;
-    // }
   }
 };
 </script>

@@ -6,15 +6,14 @@
 </template>
 
 <script>
-
+import Utils from "../../utils/utils.js";
 export default {
   data () {
     return {
-      name: "",
+      title: "",
       src: "http://eiiizong.top/test"
     };
   },
-  created () { },
   onShow () {
     this.init();
   },
@@ -24,9 +23,10 @@ export default {
     init () {
       const data = this.$root.$mp.query;
       if (data) {
-        this.name = data.name;
+        this.title = data.title;
         this.src = data.url;
       }
+      Utils.setNavigationBarTitle(this.title);
     }
   }
 };

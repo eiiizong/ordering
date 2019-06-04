@@ -70,21 +70,14 @@ export default {
 
       if (globalData.isChoiceAddress === true) {
         this.isChoiceAddress = true;
-        this.setNavigationBarTitle();
+        Utils.setNavigationBarTitle("选择地址");
       }
       this.requestGetAddressData();
+
       console.log("this.globalData => ", this.globalData);
       console.log("this.isChoiceAddress => ", this.isChoiceAddress);
       console.log("this.deviceType => ", this.deviceType);
       console.log("this.userInfo => ", this.userInfo);
-    },
-    // 设置标题
-    setNavigationBarTitle () {
-      if (this.isChoiceAddress) {
-        mpvue.setNavigationBarTitle({
-          title: "选择地址"
-        });
-      }
     },
     // 计算默认地址序号
     caclDefaultAddressIndex (data) {
