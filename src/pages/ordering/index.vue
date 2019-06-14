@@ -400,11 +400,8 @@ export default {
         });
       }
       if (mpvuePlatform === "my") {
-        mpvue.onSocketClose(message => {
-          let data = JSON.parse(message.data);
-          console.log("Socket 接受到服务器的消息 => ", message);
-          console.log("Socket 接受到服务器的消息 data => ", data);
-
+        mpvue.onSocketClose(res => {
+          console.log("监听 Socket 连接  => 此时已关闭", res);
           context.globalData.socketIsOpen = false;
           if (context.globalData.order_type === "scan") {
             if (context.globalData.socketConnectTime < 5) {
@@ -491,40 +488,32 @@ export default {
     },
     // 监听 WebSocket 接受到服务器的消息事件
     SocketTaskOnMessage (SocketTask, context) {
+      const func = (message) => {
+        let data = JSON.parse(message.data);
+        console.log("Socket 接受到服务器的消息 => ", message);
+        console.log("Socket 接受到服务器的消息 data => ", data);
+
+        if (data.d.sid) {
+          // 第一次连接绑定 socket
+          context.globalData.socketSessionId = data.d.sid;
+          if (context.goodsList.categoryList) {
+            context.SocketTaskSendGetAllFoods(SocketTask, context);
+          }
+        } else {
+          if (context.globalData.userInfo.id !== data.d.user_id) {
+            context.caclSocketdata(data);
+          }
+        }
+      };
+
       if (mpvuePlatform === "wx") {
         SocketTask.onMessage((message) => {
-          let data = JSON.parse(message.data);
-          console.log("Socket 接受到服务器的消息 => ", message);
-          console.log("Socket 接受到服务器的消息 data => ", data);
-
-          if (data.d.sid) {
-            // 第一次连接绑定 socket
-            context.globalData.socketSessionId = data.d.sid;
-            if (context.goodsList.categoryList) {
-              context.SocketTaskSendGetAllFoods(SocketTask, context);
-            }
-          } else {
-            if (context.globalData.userInfo.id !== data.d.user_id) {
-              context.caclSocketdata(data);
-            }
-          }
+          func(message);
         });
       }
       if (mpvuePlatform === "my") {
         mpvue.onSocketMessage(message => {
-          let data = JSON.parse(message.data);
-          console.log("Socket 接受到服务器的消息 => ", message);
-          console.log("Socket 接受到服务器的消息 data => ", data);
-
-          if (data.d.sid) {
-            // 第一次连接绑定 socket
-            context.globalData.socketSessionId = data.d.sid;
-            context.SocketTaskSendGetAllFoods(SocketTask, context);
-          } else {
-            if (context.globalData.userInfo.id !== data.d.user_id) {
-              context.caclSocketdata(data);
-            }
-          }
+          func(message);
         });
       }
     },

@@ -81,38 +81,39 @@ export default {
       // 标记用户是否已经注册
       isSigned: false,
       categoryList: [],
-      shopId: ""
+      shopId: "",
+      deviceType: ""
     };
   },
   components: {
     LinkCell,
     TopNav
   },
-  created () { },
   onShow () {
     this.checkUserIsSigned();
   },
   mounted () {
-    const sceneValue = mpvue.getLaunchOptionsSync();
-    console.log("场景值 => ", sceneValue.scene);
   },
   methods: {
     // 检测用户是否已经注册
     checkUserIsSigned () {
       const globalData = this.globalData;
+      const userInfo = globalData.userInfo;
+      const orderType = globalData.order_type;
 
       this.shopId = globalData.shopId;
-      const userInfo = globalData.userInfo;
+      this.deviceType = globalData.device_type;
+      this.userInfo = userInfo;
 
       if (!userInfo.access_token) {
-        console.log("access_token为空，用户未注册");
+        console.log("用户未注册");
         this.isSigned = false;
       } else {
         console.log("用户已注册");
         this.isSigned = true;
         this.requestUserCenterData();
-        if (this.globalData.order_type === "scan") {
-          this.globalData.changeCategoryList = data => {
+        if (orderType === "scan") {
+          globalData.changeCategoryList = data => {
             this.updateBarBadge(data);
           };
           globalData.SocketTaskSendGetAllFoods(globalData.SocketTask, this);
@@ -121,19 +122,18 @@ export default {
     },
     // 请求数据
     requestUserCenterData () {
-      const _this = this;
       const url = "user/center";
       const methods = "POST";
       const data = {};
       const header = {
-        "access-token": _this.globalData.userInfo.access_token,
-        "device-type": _this.globalData.device_type
+        "access-token": this.userInfo.access_token,
+        "device-type": this.deviceType
       };
       Utils.requestData(url, methods, data, header).then(result => {
         console.log(`发起获取 ${url} 数据请求 成功 => 返回的结果：`, result);
-        _this.userInfo = result.data;
-        mpvue.stopPullDownRefresh();
-        mpvue.hideLoading();
+        this.userInfo = result.data;
+        // mpvue.stopPullDownRefresh();
+        // mpvue.hideLoading();
       }).catch(err => {
         console.log(`发起获取 ${url} 数据请求 失败 => 返回的结果：`, err);
       });
@@ -147,7 +147,7 @@ export default {
           url
         });
       } else {
-        Utils.showToast("请先绑定手机号");
+        Utils.showToast("请先绑定手机号注册");
       }
     },
     // 点击我的预约
@@ -158,7 +158,7 @@ export default {
           url
         });
       } else {
-        Utils.showToast("请先绑定手机号");
+        Utils.showToast("请先绑定手机号注册");
       }
     },
     // 更新购物车数量

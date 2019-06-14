@@ -49,12 +49,14 @@ export default {
   methods: {
     initInfo () {
       const globalData = this.globalData;
+      const orderType = globalData.order_type;
 
       this.shopInfo = globalData.shopInfo;
       this.shopId = globalData.shopId;
       this.userInfo = globalData.userInfo;
       this.deviceType = globalData.device_type;
-      this.orderType = globalData.order_type;
+      this.orderType = orderType;
+
       // 请求数据
       this.requestOrderListData(this.shopId);
 
@@ -64,12 +66,10 @@ export default {
       console.log("this.shopId => ", this.shopId);
       console.log("this.deviceType => ", this.deviceType);
 
-      if (this.orderType === "scan") {
-        // this.Socket();
-        this.globalData.changeCategoryList = data => {
+      if (orderType === "scan") {
+        globalData.changeCategoryList = data => {
           this.updateBarBadge(data);
         };
-        // this.globalData.pushCategoryList();
         globalData.SocketTaskSendGetAllFoods(globalData.SocketTask, this);
       }
     },

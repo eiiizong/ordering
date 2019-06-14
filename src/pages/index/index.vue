@@ -472,6 +472,7 @@ export default {
       }
 
       console.log("this.globalData =>", globalData);
+      console.log("orderType =>", orderType);
     },
     // 获取手机号
     getphonenumber (e) {
@@ -965,36 +966,7 @@ export default {
           }
         });
       } else if (mpvuePlatform === "my") {
-        mpvue.scan({
-          type: "qr",
-          hideAlbum: true,
-          success: (res) => {
-            console.log("扫码二维码结果...=> ", res);
-            const path = res.path;
-            if (path) {
-              let params = _this.getUrlParameter(path);
-              if (params.d && params.s) {
-                _this.globalData.deskId = params.d;
-                _this.globalData.shopId = params.s;
-                _this.shopId = params.s;
-                _this.shopList.some(item => {
-                  if (params.s === item.id.toString()) {
-                    _this.shopInfo = item;
-                    _this.shopId = params.s;
-                    _this.globalData.shopInfo = item;
-                    return true;
-                  }
-                });
-                _this.categoryList = null;
-                _this.globalData.order_type = "scan";
-                const url = "../ordering/main";
-                mpvue.navigateTo({ url });
-              }
-            } else {
-              Utils.showToast("请扫码正确的二维码");
-            }
-          }
-        });
+        Utils.showToast("由于小程序扫一扫API无法获取二维码携带的参数，请先关闭小程序，调用支付宝APP扫一扫进入。");
       }
     },
     // 外卖
